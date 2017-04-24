@@ -39,8 +39,8 @@
    (context "/api" [] 
      (GET "/Disciplina" []
        :return (s/maybe Disciplina)
-       :query-params [{nome :- String nil}
-                      {codigo :- Long nil}]
+       :query-params [{nome :- (s/maybe String) nil}
+                      {codigo :- (s/maybe Long) nil}]
        :summary "Retorna uma disciplina do banco de dados em JSON"
        (ok (query "Disciplina" {"nome" nome
                                 "codigo" codigo}))))))
