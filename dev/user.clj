@@ -1,6 +1,7 @@
 (ns user
   (:require [ring.adapter.jetty :refer :all]
-            [simone-4.handler :refer :all]))
+            [simone-4.handler :refer :all]
+            [clojure.repl :refer :all]))
 
 (def server (atom nil))
 (def port 9123)

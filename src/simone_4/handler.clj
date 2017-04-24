@@ -9,13 +9,14 @@
             [simone-4.config :refer [db]]))
 
 (defn assemble-query [tofind-map]
-  (reduce (fn [acc-v [k v]]
-            (if-not (nil? v)
-              (-> acc-v
-                  (update 0 #(str % k "=? "))
-                  (conj v))
-              acc-v))
-          [] tofind-map))
+  (-> (reduce (fn [acc-v [k v]]
+                (if-not (nil? v)
+                  (-> acc-v
+                      (update 0 #(str % k "=? AND "))
+                      (conj v))
+                  acc-v))
+              [] tofind-map)
+      (update 0 #(str % "1=1"))))
 
 (defn query [table tofind-map]
   (let [aq (assemble-query tofind-map)]
@@ -24,7 +25,7 @@
          first)))
 
 (s/defschema Disciplina
-  {:name s/Str
+  {:nome s/Str
    :codigo s/Int})
 
 (def app
@@ -37,9 +38,9 @@
 
    (context "/api" [] 
      (GET "/Disciplina" []
-       :return {:result Long}
+       :return (s/maybe Disciplina)
        :query-params [{nome :- String nil}
                       {codigo :- Long nil}]
        :summary "Retorna uma disciplina do banco de dados em JSON"
-       (ok {:result (encode (query "Disciplina" {"nome" nome
-                                                 "codigo" codigo}))})))))
+       (ok (query "Disciplina" {"nome" nome
+                                "codigo" codigo}))))))
