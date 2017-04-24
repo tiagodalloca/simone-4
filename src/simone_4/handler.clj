@@ -10,14 +10,18 @@
 
 (defn assemble-query [tofind-map]
   (reduce (fn [acc-v [k v]]
-            (-> acc-v
-                (update 0 #(str % k "=? "))
-                (conj k)))
+            (if-not (nil? v)
+              (-> acc-v
+                  (update 0 #(str % k "=? "))
+                  (conj v))
+              acc-v))
           [] tofind-map))
 
 (defn query [table tofind-map]
   (let [aq (assemble-query tofind-map)]
-    (j/query db (update aq 0 #(str "SELECT * FROM " table " WHERE " %)))))
+    (->> (update aq 0 #(str "SELECT * FROM " table " WHERE " %))
+         (j/query db)
+         first)))
 
 (s/defschema Disciplina
   {:name s/Str
@@ -34,8 +38,8 @@
    (context "/api" [] 
      (GET "/Disciplina" []
        :return {:result Long}
-       :query-params [nome :- String codigo :- Long]
+       :query-params [{nome :- String nil}
+                      {codigo :- Long nil}]
        :summary "Retorna uma disciplina do banco de dados em JSON"
-       (ok {:result (parse-string
-                     (query "Disciplina" {"nome" nome
-                                          "codigo" codigo}))})))))
+       (ok {:result (encode (query "Disciplina" {"nome" nome
+                                                 "codigo" codigo}))})))))
